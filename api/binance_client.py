@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import time
 import streamlit as st
 from utils.config import get_api_keys
+from database import db_manager
 
 class BinanceClient:
     def __init__(self):
@@ -93,8 +94,33 @@ class BinanceClient:
     
     @st.cache_data(ttl=15)  # Cache for 15 seconds
     def get_klines(self, symbol, interval, limit=500, _client=None):
-        """Get klines/candlestick data (cached wrapper)"""
-        return self._get_klines_internal(symbol, interval, limit)
+        """
+        Get klines/candlestick data (cached wrapper)
+        First tries to get from database, then falls back to API if needed
+        """
+        # Try to get data from database first
+        if self.connected:
+            # Get data from API
+            df = self._get_klines_internal(symbol, interval, limit)
+            if not df.empty:
+                # Save to database for future use
+                try:
+                    db_manager.save_price_data(df, symbol, interval)
+                except Exception as e:
+                    print(f"Error saving price data to database: {e}")
+                return df
+        
+        # If API fails or not connected, try to get from database
+        try:
+            db_df = db_manager.get_price_data(symbol, interval, limit)
+            if not db_df.empty:
+                print(f"Using cached data from database for {symbol} {interval}")
+                return db_df
+        except Exception as e:
+            print(f"Error retrieving price data from database: {e}")
+        
+        # If all else fails, return empty DataFrame
+        return pd.DataFrame()
     
     def _get_ticker_internal(self, symbol):
         """Get current price ticker (internal implementation)"""
