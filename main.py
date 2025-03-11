@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import time
-from api.binance_client import BinanceClient
+from api.tradingview_client import TradingViewClient
 from components.sidebar import render_sidebar
 from components.dashboard import render_dashboard
 from utils.config import get_api_keys, is_authenticated

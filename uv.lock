@@ -990,6 +990,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "sqlalchemy" },
     { name = "streamlit" },
+    { name = "tradingview-ta" },
 ]
 
 [package.metadata]
@@ -1001,6 +1002,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.6.1" },
     { name = "sqlalchemy", specifier = ">=2.0.39" },
     { name = "streamlit", specifier = ">=1.43.2" },
+    { name = "tradingview-ta", specifier = ">=3.3.0" },
 ]
 
 [[package]]
@@ -1285,6 +1287,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2b/ae/c1b22d4524b0e10da2f29a176fb2890386f7bd1f63aacf186444873a88a0/tornado-6.4.2-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:932d195ca9015956fa502c6b56af9eb06106140d844a335590c1ec7f5277d10c", size = 437261 },
     { url = "https://files.pythonhosted.org/packages/b5/25/36dbd49ab6d179bcfc4c6c093a51795a4f3bed380543a8242ac3517a1751/tornado-6.4.2-cp38-abi3-win32.whl", hash = "sha256:2876cef82e6c5978fde1e0d5b1f919d756968d5b4282418f3146b79b58556482", size = 438463 },
     { url = "https://files.pythonhosted.org/packages/61/cc/58b1adeb1bb46228442081e746fcdbc4540905c87e8add7c277540934edb/tornado-6.4.2-cp38-abi3-win_amd64.whl", hash = "sha256:908b71bf3ff37d81073356a5fadcc660eb10c1476ee6e2725588626ce7e5ca38", size = 438907 },
+]
+
+[[package]]
+name = "tradingview-ta"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/e1/5066e9e1ff3be56615fd5347501aaae92918947d30f76a36a7f707acfe0a/tradingview_ta-3.3.0.tar.gz", hash = "sha256:f1a55351ed28554234106a28772f167e818d57f384d47f85b763bd143955c34a", size = 10898 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/58/db316237a924d0fb9f38a53b8573d6555ada13325caf6a3bb35f77e646fb/tradingview_ta-3.3.0-py3-none-any.whl", hash = "sha256:1250068a44e253caeb2066bc1cd6e588f71796612d41d5d55d25083cf86b5531", size = 10394 },
 ]
 
 [[package]]

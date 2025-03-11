@@ -4,6 +4,8 @@ import numpy as np
 from models.signal_generator import SignalGenerator
 from utils.indicators import TechnicalIndicators
 import time
+import datetime
+from database import db_manager
 
 def render_trade_signals(df, symbol, timeframe):
     """Render the trade signals component"""
@@ -14,11 +16,89 @@ def render_trade_signals(df, symbol, timeframe):
     # Create signal generator
     signal_generator = SignalGenerator()
     
-    # Get recent signals
+    # Get recent signals from model
     signals = signal_generator.generate_signals(df)
+    
+    # Save new signals to database if there are any
+    if not signals.empty:
+        try:
+            for i, signal in signals.iterrows():
+                # Prepare signal data for database
+                signal_data = {
+                    'symbol': symbol,
+                    'timeframe': timeframe,
+                    'timestamp': signal['timestamp'],
+                    'signal_type': 'buy' if signal['signal'] == 1 else 'sell' if signal['signal'] == -1 else 'neutral',
+                    'price': float(signal['price']),
+                    'confidence': float(signal['confidence']),
+                    'entry_price': float(signal['price']),
+                    'stop_loss': None,  # These would be filled in from price_levels after prediction
+                    'take_profit': None,
+                    'indicators': {
+                        'macd': signal.get('macd', None),
+                        'rsi': signal.get('rsi', None),
+                        'ema_cross': signal.get('ema_cross', None)
+                    } if 'macd' in signal or 'rsi' in signal or 'ema_cross' in signal else None,
+                    'notes': signal['reason']
+                }
+                
+                # Save to database
+                db_manager.save_trading_signal(signal_data)
+        except Exception as e:
+            st.error(f"Error saving signals to database: {e}")
+    
+    # Try to get existing signals from database
+    try:
+        db_signals = db_manager.get_trading_signals(symbol, timeframe, limit=10)
+        if not db_signals.empty:
+            # Combine with model-generated signals
+            # This could be enhanced to avoid duplicates, etc.
+            if not signals.empty:
+                # We could do a more complex comparison here to avoid duplication
+                pass
+            else:
+                # If no new signals were generated, use database signals
+                # (need to convert to same format as model-generated signals)
+                signals_list = []
+                for _, row in db_signals.iterrows():
+                    signals_list.append({
+                        'timestamp': row['timestamp'],
+                        'signal': 1 if row['signal_type'] == 'buy' else -1 if row['signal_type'] == 'sell' else 0,
+                        'price': row['price'],
+                        'confidence': row['confidence'],
+                        'reason': row['notes'] or 'Historical signal from database'
+                    })
+                if signals_list:
+                    signals = pd.DataFrame(signals_list)
+    except Exception as e:
+        st.warning(f"Couldn't retrieve signals from database: {e}")
     
     # Predict price levels
     price_levels = signal_generator.predict_price_levels(df, symbol, timeframe)
+    
+    # If we have price levels and signals, update the stop loss and take profit in the database
+    if price_levels['entry'] is not None and not signals.empty:
+        try:
+            # Get the most recent signal from the database
+            recent_signals = db_manager.get_trading_signals(symbol, timeframe, limit=1)
+            if not recent_signals.empty:
+                signal_id = recent_signals.iloc[0]['id']
+                
+                # Update the signal with price levels
+                session = db_manager.get_session()
+                try:
+                    signal = session.query(db_manager.TradingSignal).filter_by(id=signal_id).first()
+                    if signal:
+                        signal.stop_loss = float(price_levels['stop_loss'])
+                        signal.take_profit = float(price_levels['exit'])
+                        session.commit()
+                except Exception as e:
+                    session.rollback()
+                    st.warning(f"Could not update price levels in database: {e}")
+                finally:
+                    session.close()
+        except Exception as e:
+            st.warning(f"Error updating price levels: {e}")
     
     # Get latest price
     current_price = df['close'].iloc[-1]
