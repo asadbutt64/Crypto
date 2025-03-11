@@ -4,6 +4,7 @@ import time
 from api.binance_client import BinanceClient
 from components.sidebar import render_sidebar
 from components.dashboard import render_dashboard
+from utils.config import get_api_keys, is_authenticated
 import os
 
 # Set page configuration
@@ -34,9 +35,20 @@ if 'indicators' not in st.session_state:
         "MACD": True,
         "Volume": True
     }
-if 'api_client' not in st.session_state:
-    # Initialize Binance API client
+# Track the API keys to detect changes
+if 'last_api_keys' not in st.session_state:
+    st.session_state.last_api_keys = get_api_keys()
+
+# Check if API keys have changed and recreate client if needed
+current_api_keys = get_api_keys()
+api_keys_changed = (st.session_state.last_api_keys != current_api_keys)
+
+if 'api_client' not in st.session_state or api_keys_changed:
+    # Initialize or reinitialize Binance API client
     st.session_state.api_client = BinanceClient()
+    # Update the last known API keys
+    st.session_state.last_api_keys = current_api_keys.copy()
+
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'auto_refresh' not in st.session_state:

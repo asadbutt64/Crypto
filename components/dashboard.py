@@ -12,17 +12,54 @@ def render_dashboard():
     timeframe = st.session_state.timeframe
     indicators = st.session_state.indicators
     
+    # Check API client connection status
+    if not st.session_state.api_client.connected:
+        if st.session_state.api_client.geo_restricted:
+            st.error("Binance API access is restricted from your location")
+            st.warning("""
+            ### API Access Error
+            
+            The Binance API is unavailable from your current location due to geographic restrictions.
+            
+            **Solutions:**
+            1. Provide your own Binance API keys in the sidebar
+            2. Use a VPN to access from a supported region
+            
+            API keys can be obtained from your Binance account under API Management.
+            """)
+        else:
+            st.error(f"Failed to connect to Binance API: {st.session_state.api_client.error_message}")
+            st.warning("""
+            ### Connection Issue
+            
+            Unable to connect to the Binance API. This could be due to:
+            - Network connectivity issues
+            - Invalid API credentials
+            - Binance API service disruption
+            
+            Please check your connection and API settings in the sidebar.
+            """)
+            
+        # Show a sample data visualization message
+        st.info("The dashboard will display market data and signals once connected to the Binance API.")
+        return
+    
     # Create placeholder for price chart
     chart_placeholder = st.empty()
     
     # Display loading message while fetching data
     with chart_placeholder.container():
         with st.spinner(f"Loading {symbol} data..."):
-            # Fetch klines data
-            df = st.session_state.api_client.get_klines(symbol, timeframe, limit=500)
-            
-            if df.empty:
-                st.error(f"Failed to fetch data for {symbol}. Please try another cryptocurrency or check your connection.")
+            try:
+                # Fetch klines data
+                df = st.session_state.api_client.get_klines(symbol, timeframe, limit=500)
+                
+                if df.empty:
+                    st.error(f"Failed to fetch data for {symbol}. Please try another cryptocurrency or check your connection.")
+                    return
+            except Exception as e:
+                st.error(f"Error fetching data: {str(e)}")
+                st.info("Please check your connection and API settings in the sidebar.")
                 return
     
     # Create dashboard tabs

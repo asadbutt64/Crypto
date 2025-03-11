@@ -1,25 +1,78 @@
 import streamlit as st
 import pandas as pd
 from api.binance_client import BinanceClient
+from utils.config import get_api_keys, set_api_keys, is_authenticated
 
 def render_sidebar():
     """Render the sidebar with settings"""
     with st.sidebar:
         st.header("Market Settings")
         
+        # API Configuration Section
+        with st.expander("API Configuration", expanded=not is_authenticated()):
+            st.markdown("**Binance API Configuration**")
+            st.markdown("Enter your Binance API credentials to access private data and trading features.")
+            
+            # Get current API keys
+            api_keys = get_api_keys()
+            
+            # Input fields for API keys
+            api_key = st.text_input(
+                "API Key", 
+                value=api_keys["binance_api_key"],
+                type="password" if api_keys["binance_api_key"] else "default"
+            )
+            
+            api_secret = st.text_input(
+                "API Secret", 
+                value=api_keys["binance_api_secret"],
+                type="password"
+            )
+            
+            # Apply button
+            if st.button("Apply API Settings"):
+                set_api_keys(api_key, api_secret)
+                st.success("API settings updated!")
+                # Force reconnect on next refresh
+                if hasattr(st.session_state, 'api_client'):
+                    st.session_state.api_client = None
+                st.experimental_rerun()
+        
         # Check API client connection
         if hasattr(st.session_state, 'api_client') and st.session_state.api_client:
             if st.session_state.api_client.connected:
                 st.success("Connected to Binance API")
+                if st.session_state.api_client.authenticated:
+                    st.info("Using authenticated API access")
+                else:
+                    st.info("Using public API access with limited features")
             else:
-                st.error("Failed to connect to Binance API")
-                st.info("Using public API access with limited features")
+                if st.session_state.api_client.geo_restricted:
+                    st.error("Geo-restriction Error: Binance API")
+                    st.warning("""
+                    The Binance API is unavailable from your location. 
+                    Please provide your own Binance API keys to continue.
+                    
+                    Get your API keys from: https://www.binance.com/en/my/settings/api-management
+                    """)
+                    st.info("API keys are stored in your browser session only")
+                else:
+                    st.error("Failed to connect to Binance API")
+                    if is_authenticated():
+                        st.info("Check your API credentials or network connection")
+                    else:
+                        st.info("Using public API access with limited features")
         
         # Get available symbols
         try:
-            available_symbols = st.session_state.api_client.get_available_symbols()
-        except:
-            # Fallback to common symbols
+            if st.session_state.api_client and st.session_state.api_client.connected:
+                available_symbols = st.session_state.api_client.get_available_symbols()
+            else:
+                # Fallback to common symbols if not connected
+                available_symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "DOGEUSDT", "XRPUSDT"]
+        except Exception as e:
+            # Fallback to common symbols on error
+            st.warning(f"Unable to fetch available trading pairs: {str(e)}")
             available_symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "DOGEUSDT", "XRPUSDT"]
         
         # Cryptocurrency selection
