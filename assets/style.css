@@ -1,0 +1,162 @@
+/* Main styling for the app */
+.stApp {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+/* Widget formatting */
+div.stButton > button {
+    width: 100%;
+    border-radius: 5px;
+    height: 2.5em;
+}
+
+div.stButton > button:hover {
+    border-color: #0D6EFD;
+    color: #0D6EFD;
+}
+
+.stCheckbox > label {
+    font-size: 0.9em;
+}
+
+/* Metrics styling */
+[data-testid="stMetricValue"] {
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+[data-testid="stMetricDelta"] {
+    font-size: 0.9rem;
+}
+
+/* Card styling */
+div.element-container:has(+ div.stMarkdown h3) {
+    background-color: #1E1E1E;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Table styling */
+.dataframe {
+    font-size: 0.9rem;
+}
+
+.dataframe th {
+    background-color: #1E1E1E;
+    color: #ffffff;
+    text-align: left;
+    padding: 8px;
+}
+
+.dataframe td {
+    padding: 8px;
+    border-top: 1px solid #333333;
+}
+
+/* Chart styling adjustments */
+[data-testid="stPlotlyChart"] {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Header styling */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Tabs styling */
+button[data-baseweb="tab"] {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+button[data-baseweb="tab"]:hover {
+    color: #0D6EFD;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+    background-color: #1E1E1E;
+}
+
+section[data-testid="stSidebar"] > div {
+    padding-top: 2rem;
+}
+
+section[data-testid="stSidebar"] h2 {
+    font-size: 1.2rem;
+}
+
+section[data-testid="stSidebar"] h3 {
+    font-size: 1rem;
+}
+
+/* Success/error/info messages */
+div.element-container div.stAlert {
+    padding: 0.75rem;
+    border-radius: 5px;
+}
+
+/* Spin loading icon */
+div.stSpinner > div {
+    border-color: #0D6EFD !important;
+}
+
+/* Signal text colors */
+.buy-signal {
+    color: #26A69A;
+    font-weight: bold;
+}
+
+.sell-signal {
+    color: #EF5350;
+    font-weight: bold;
+}
+
+/* Trading signals cards */
+.signal-card {
+    background-color: #1E1E1E;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    h3 {
+        font-size: 1rem;
+    }
+    
+    [data-testid="stMetricValue"] {
+        font-size: 1.1rem;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        font-size: 0.8rem;
+    }
+}
