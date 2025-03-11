@@ -75,7 +75,7 @@ if st.session_state.auto_refresh:
     time_since_update = time.time() - st.session_state.last_update
     if time_since_update >= st.session_state.refresh_interval:
         st.session_state.last_update = time.time()
-        st.experimental_rerun()
+        st.rerun()
         
 # Footer
 st.markdown("---")

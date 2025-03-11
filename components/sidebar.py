@@ -36,7 +36,7 @@ def render_sidebar():
                 # Force reconnect on next refresh
                 if hasattr(st.session_state, 'api_client'):
                     st.session_state.api_client = None
-                st.experimental_rerun()
+                st.rerun()
         
         # Check API client connection
         if hasattr(st.session_state, 'api_client') and st.session_state.api_client:
@@ -85,7 +85,7 @@ def render_sidebar():
         
         if selected_crypto != st.session_state.selected_crypto:
             st.session_state.selected_crypto = selected_crypto
-            st.experimental_rerun()
+            st.rerun()
         
         # Timeframe selection
         st.subheader("Select Timeframe")
@@ -108,7 +108,7 @@ def render_sidebar():
         
         if selected_timeframe != st.session_state.timeframe:
             st.session_state.timeframe = selected_timeframe
-            st.experimental_rerun()
+            st.rerun()
         
         # Technical indicators section
         st.subheader("Technical Indicators")
@@ -135,7 +135,7 @@ def render_sidebar():
         # Update session state if indicators changed
         if indicator_states != st.session_state.indicators:
             st.session_state.indicators = indicator_states
-            st.experimental_rerun()
+            st.rerun()
         
         # Auto-refresh option
         st.subheader("Data Settings")
@@ -157,7 +157,7 @@ def render_sidebar():
         # Manually refresh button
         if st.button("Refresh Data Now"):
             st.session_state.last_update = 0  # Force refresh
-            st.experimental_rerun()
+            st.rerun()
             
         # Display app info
         st.markdown("---")
