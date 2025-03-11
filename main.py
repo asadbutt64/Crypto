@@ -44,8 +44,8 @@ current_api_keys = get_api_keys()
 api_keys_changed = (st.session_state.last_api_keys != current_api_keys)
 
 if 'api_client' not in st.session_state or api_keys_changed:
-    # Initialize or reinitialize Binance API client
-    st.session_state.api_client = BinanceClient()
+    # Initialize or reinitialize TradingView API client
+    st.session_state.api_client = TradingViewClient()
     # Update the last known API keys
     st.session_state.last_api_keys = current_api_keys.copy()
 
@@ -79,5 +79,5 @@ if st.session_state.auto_refresh:
         
 # Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center;'>CryptoScalp AI | Real-time Analytics & Trading Signals | Data from Binance</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>CryptoScalp AI | Real-time Analytics & Trading Signals | Data from TradingView</p>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 0.8em;'>Disclaimer: Trading cryptocurrencies involves risk. This tool provides analysis, not financial advice.</p>", unsafe_allow_html=True)

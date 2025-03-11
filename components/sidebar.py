@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from api.binance_client import BinanceClient
+from api.tradingview_client import TradingViewClient
 from utils.config import get_api_keys, set_api_keys, is_authenticated
 
 def render_sidebar():
@@ -8,67 +8,44 @@ def render_sidebar():
     with st.sidebar:
         st.header("Market Settings")
         
-        # API Configuration Section
-        with st.expander("API Configuration", expanded=not is_authenticated()):
-            st.markdown("**Binance API Configuration**")
-            st.markdown("Enter your Binance API credentials to access private data and trading features.")
+        # API Configuration Section (No API keys needed for TradingView)
+        with st.expander("API Information", expanded=False):
+            st.markdown("**TradingView API Information**")
+            st.markdown("""
+            This application uses the TradingView API to fetch market data. No authentication is required
+            as we're using the public API endpoints.
             
-            # Get current API keys
-            api_keys = get_api_keys()
+            Features include:
+            - Real-time price data
+            - Technical indicators
+            - Market analytics
+            """)
             
-            # Input fields for API keys
-            api_key = st.text_input(
-                "API Key", 
-                value=api_keys["binance_api_key"],
-                type="password" if api_keys["binance_api_key"] else "default"
-            )
+            # TradingView link 
+            st.markdown("[Visit TradingView](https://www.tradingview.com/)")
             
-            api_secret = st.text_input(
-                "API Secret", 
-                value=api_keys["binance_api_secret"],
-                type="password"
-            )
-            
-            # Apply button
-            if st.button("Apply API Settings"):
-                set_api_keys(api_key, api_secret)
-                st.success("API settings updated!")
-                # Force reconnect on next refresh
-                if hasattr(st.session_state, 'api_client'):
-                    st.session_state.api_client = None
-                st.rerun()
-        
-        # Check API client connection
+        # Display connection status
         if hasattr(st.session_state, 'api_client') and st.session_state.api_client:
-            if st.session_state.api_client.connected:
-                st.success("Connected to Binance API")
-                if st.session_state.api_client.authenticated:
-                    st.info("Using authenticated API access")
+            try:
+                # Try to fetch a test symbol to check connection
+                test_symbol = "BTCUSDT"
+                ticker = st.session_state.api_client.get_ticker(test_symbol)
+                if ticker:
+                    st.success("Connected to TradingView API")
+                    st.info("Using public API access")
                 else:
-                    st.info("Using public API access with limited features")
-            else:
-                if st.session_state.api_client.geo_restricted:
-                    st.error("Geo-restriction Error: Binance API")
-                    st.warning("""
-                    The Binance API is unavailable from your location. 
-                    Please provide your own Binance API keys to continue.
-                    
-                    Get your API keys from: https://www.binance.com/en/my/settings/api-management
-                    """)
-                    st.info("API keys are stored in your browser session only")
-                else:
-                    st.error("Failed to connect to Binance API")
-                    if is_authenticated():
-                        st.info("Check your API credentials or network connection")
-                    else:
-                        st.info("Using public API access with limited features")
+                    st.error("Failed to connect to TradingView API")
+                    st.info("Please check your internet connection or try again later")
+            except Exception as e:
+                st.error(f"Error connecting to TradingView API: {e}")
+                st.info("Using cached data where available")
         
         # Get available symbols
         try:
-            if st.session_state.api_client and st.session_state.api_client.connected:
-                available_symbols = st.session_state.api_client.get_available_symbols()
-            else:
-                # Fallback to common symbols if not connected
+            # Get symbols from TradingView client
+            available_symbols = st.session_state.api_client.get_available_symbols()
+            if not available_symbols:
+                # Fallback to common symbols if not available
                 available_symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "DOGEUSDT", "XRPUSDT"]
         except Exception as e:
             # Fallback to common symbols on error
@@ -165,7 +142,8 @@ def render_sidebar():
         st.markdown("""
         **CryptoScalp AI** provides real-time analytics and trading signals for cryptocurrency scalping.
         
-        - Data provided by Binance API
+        - Data provided by TradingView API
         - View technical indicators
         - Get AI-powered trading signals
+        - Store signals in PostgreSQL database
         """)
