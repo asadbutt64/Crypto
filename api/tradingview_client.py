@@ -14,6 +14,10 @@ class TradingViewClient:
         """Initialize the TradingView client"""
         self.db_manager = DBManager()
         
+        # Connection status
+        self.connected = True  # Default to True since we don't need auth
+        self.authenticated = False  # Always False as we use public API
+        
         # Available intervals mapping
         self.intervals = {
             "1m": Interval.INTERVAL_1_MINUTE,
@@ -50,6 +54,22 @@ class TradingViewClient:
             "ticker": {},
             "stats": {}
         }
+        
+        # Test the connection when initializing
+        try:
+            # Try to fetch basic data to test connection
+            handler = TA_Handler(
+                symbol="BTCUSDT",
+                exchange="BINANCE",
+                screener="crypto",
+                interval=Interval.INTERVAL_1_MINUTE,
+                timeout=5
+            )
+            handler.get_analysis()
+            self.connected = True
+        except Exception as e:
+            self.connected = False
+            st.warning(f"Could not connect to TradingView API: {e}")
     
     def _format_symbol_for_tv(self, symbol):
         """Format a symbol for TradingView API (e.g., BTCUSDT -> BINANCE:BTCUSDT)"""
