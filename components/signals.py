@@ -234,13 +234,13 @@ def render_trade_signals(df, symbol, timeframe):
     with col1:
         st.markdown("### Support & Resistance")
         
-        if 'support' in levels and levels['support']:
+        if levels and 'support' in levels and levels['support']:
             supports = [f"${level:.4f}" for level in levels['support']]
             st.markdown(f"**Support Levels**: {', '.join(supports)}")
         else:
             st.markdown("**Support Levels**: No clear levels detected")
         
-        if 'resistance' in levels and levels['resistance']:
+        if levels and 'resistance' in levels and levels['resistance']:
             resistances = [f"${level:.4f}" for level in levels['resistance']]
             st.markdown(f"**Resistance Levels**: {', '.join(resistances)}")
         else:

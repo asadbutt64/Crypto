@@ -200,70 +200,78 @@ class TechnicalIndicators:
     def detect_support_resistance(df, window=5):
         """Detect support and resistance levels"""
         if df.empty or len(df) < window*2:
-            return []
+            return {}
             
-        # Find local minima and maxima
-        df = df.copy()
-        df['min'] = df['low'].rolling(window=window, center=True).min()
-        df['max'] = df['high'].rolling(window=window, center=True).max()
-        
-        support_levels = []
-        resistance_levels = []
-        
-        # Identify support levels (local minima)
-        for i in range(window, len(df)-window):
-            if df['low'].iloc[i] == df['min'].iloc[i] and df['low'].iloc[i] < df['low'].iloc[i-1] and df['low'].iloc[i] < df['low'].iloc[i+1]:
-                support_levels.append((df.index[i], df['low'].iloc[i]))
-        
-        # Identify resistance levels (local maxima)
-        for i in range(window, len(df)-window):
-            if df['high'].iloc[i] == df['max'].iloc[i] and df['high'].iloc[i] > df['high'].iloc[i-1] and df['high'].iloc[i] > df['high'].iloc[i+1]:
-                resistance_levels.append((df.index[i], df['high'].iloc[i]))
-        
-        # Cluster similar levels
-        def cluster_levels(levels, threshold_pct=0.005):
-            if not levels:
-                return []
-                
-            clustered = []
-            levels.sort(key=lambda x: x[1])
-            current_cluster = [levels[0]]
+        try:
+            # Find local minima and maxima
+            df = df.copy()
+            df['min'] = df['low'].rolling(window=window, center=True).min()
+            df['max'] = df['high'].rolling(window=window, center=True).max()
             
-            for i in range(1, len(levels)):
-                current_level = levels[i][1]
-                prev_level = current_cluster[-1][1]
-                
-                # If current level is within threshold% of previous level, add to cluster
-                if abs(current_level - prev_level) / prev_level < threshold_pct:
-                    current_cluster.append(levels[i])
-                else:
-                    # Calculate average of cluster
-                    avg_time = sum(l[0].timestamp() for l in current_cluster) / len(current_cluster)
-                    avg_price = sum(l[1] for l in current_cluster) / len(current_cluster)
-                    clustered.append((pd.Timestamp(avg_time, unit='s'), avg_price))
+            support_levels = []
+            resistance_levels = []
+            
+            # Identify support levels (local minima)
+            for i in range(window, len(df)-window):
+                if df['low'].iloc[i] == df['min'].iloc[i] and df['low'].iloc[i] < df['low'].iloc[i-1] and df['low'].iloc[i] < df['low'].iloc[i+1]:
+                    support_levels.append((df.index[i], df['low'].iloc[i]))
+            
+            # Identify resistance levels (local maxima)
+            for i in range(window, len(df)-window):
+                if df['high'].iloc[i] == df['max'].iloc[i] and df['high'].iloc[i] > df['high'].iloc[i-1] and df['high'].iloc[i] > df['high'].iloc[i+1]:
+                    resistance_levels.append((df.index[i], df['high'].iloc[i]))
+            
+            # Cluster similar levels
+            def cluster_levels(levels, threshold_pct=0.005):
+                if not levels:
+                    return []
                     
-                    # Start new cluster
-                    current_cluster = [levels[i]]
+                try:
+                    clustered = []
+                    levels.sort(key=lambda x: x[1])
+                    current_cluster = [levels[0]]
+                    
+                    for i in range(1, len(levels)):
+                        current_level = levels[i][1]
+                        prev_level = current_cluster[-1][1]
+                        
+                        # If current level is within threshold% of previous level, add to cluster
+                        if abs(current_level - prev_level) / prev_level < threshold_pct:
+                            current_cluster.append(levels[i])
+                        else:
+                            # Calculate average of cluster
+                            avg_time = sum(l[0].timestamp() for l in current_cluster) / len(current_cluster)
+                            avg_price = sum(l[1] for l in current_cluster) / len(current_cluster)
+                            clustered.append((pd.Timestamp(avg_time, unit='s'), avg_price))
+                            
+                            # Start new cluster
+                            current_cluster = [levels[i]]
+                    
+                    # Add last cluster
+                    if current_cluster:
+                        avg_time = sum(l[0].timestamp() for l in current_cluster) / len(current_cluster)
+                        avg_price = sum(l[1] for l in current_cluster) / len(current_cluster)
+                        clustered.append((pd.Timestamp(avg_time, unit='s'), avg_price))
+                        
+                    return clustered
+                except Exception as e:
+                    # In case of any error in clustering, just return empty array
+                    return []
             
-            # Add last cluster
-            if current_cluster:
-                avg_time = sum(l[0].timestamp() for l in current_cluster) / len(current_cluster)
-                avg_price = sum(l[1] for l in current_cluster) / len(current_cluster)
-                clustered.append((pd.Timestamp(avg_time, unit='s'), avg_price))
-                
-            return clustered
-        
-        clustered_support = cluster_levels(support_levels)
-        clustered_resistance = cluster_levels(resistance_levels)
-        
-        # Return the most recent levels (up to 3 each)
-        recent_support = sorted(clustered_support, key=lambda x: x[0], reverse=True)[:3]
-        recent_resistance = sorted(clustered_resistance, key=lambda x: x[0], reverse=True)[:3]
-        
-        return {
-            'support': [level[1] for level in recent_support],
-            'resistance': [level[1] for level in recent_resistance]
-        }
+            clustered_support = cluster_levels(support_levels)
+            clustered_resistance = cluster_levels(resistance_levels)
+            
+            # Safely get recent levels (up to 3 each)
+            recent_support = sorted(clustered_support, key=lambda x: x[0], reverse=True)[:3] if clustered_support else []
+            recent_resistance = sorted(clustered_resistance, key=lambda x: x[0], reverse=True)[:3] if clustered_resistance else []
+            
+            return {
+                'support': [level[1] for level in recent_support],
+                'resistance': [level[1] for level in recent_resistance]
+            }
+        except Exception as e:
+            # Return empty dictionary in case of any exception
+            return {}
     
     @staticmethod
     def fibonacci_retracement(df, period=20):
