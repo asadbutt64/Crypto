@@ -111,7 +111,7 @@ class DBManager:
     
     # Price data operations
     @st.cache_data(ttl=300)  # Cache for 5 minutes
-    def get_price_data(self, symbol, timeframe, limit=500):
+    def get_price_data(_self, symbol, timeframe, limit=500):
         """
         Get historical price data from database
         
@@ -123,7 +123,7 @@ class DBManager:
         Returns:
         - DataFrame with OHLCV data
         """
-        session = self.get_session()
+        session = _self.get_session()
         try:
             query = session.query(PriceData).filter(
                 PriceData.symbol == symbol,
@@ -225,7 +225,8 @@ class DBManager:
         finally:
             session.close()
     
-    def get_trading_signals(self, symbol, timeframe, limit=50, include_closed=False):
+    @st.cache_data(ttl=300)  # Cache for 5 minutes
+    def get_trading_signals(_self, symbol, timeframe, limit=50, include_closed=False):
         """
         Get trading signals from database
         
@@ -238,7 +239,7 @@ class DBManager:
         Returns:
         - DataFrame with signals
         """
-        session = self.get_session()
+        session = _self.get_session()
         try:
             query = session.query(TradingSignal).filter(
                 TradingSignal.symbol == symbol,
@@ -313,7 +314,8 @@ class DBManager:
         finally:
             session.close()
     
-    def get_backtest_results(self, symbol=None, limit=20):
+    @st.cache_data(ttl=300)  # Cache for 5 minutes
+    def get_backtest_results(_self, symbol=None, limit=20):
         """
         Get backtest results from database
         
@@ -324,7 +326,7 @@ class DBManager:
         Returns:
         - DataFrame with backtest results
         """
-        session = self.get_session()
+        session = _self.get_session()
         try:
             query = session.query(BacktestResult)
             
